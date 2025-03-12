@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatBot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .chat-container {
+      width: 500px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-area {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      border-bottom: 1px solid #ddd;
+    }
+    .chat-area div {
+      margin-bottom: 10px;
+    }
+    .chat-area .user {
+      text-align: right;
+      color: #007bff;
+    }
+    .chat-area .bot {
+      text-align: left;
+      color: #333;
+    }
+    .input-container {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+    .input-container input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+    .input-container button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .input-container button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-area" id="chat-area">
+      <div class="bot">ChatBot: Hello! How can I help you today? 😊</div>
+    </div>
+    <div class="input-container">
+      <input type="text" id="user-input" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+
+    responses = {
+    "hello": ["Hello! 👋", "Hi there! 😊", "Hey! How can I help? 🤗"],
+    "how are you": ["I'm just a bot, but I'm good! 😄", "Doing great! How about you? 😊"],
+    "bye": ["Goodbye! 👋", "See you later! 😊", "Take care! 🌟"],
+    "your name": ["You can call me bhenchod! 😎"],
+    "time": [`The current time is ${new Date().toLocaleTimeString()}. ⏰`],
+    "date": [`Today's date is ${new Date().toLocaleDateString()}. 📅`],
+    "weather": ["I'm not sure about the weather. You might want to check a weather app! 🌦️"],
+    "joke": [
+        "Why don't scientists trust atoms? Because they make up everything! 🤓",
+        "Why did the scarecrow win an award? Because he was outstanding in his field! 🌾"],
+        
+    "thank you": ["You're welcome! 😊", "No problem! 😄", "Happy to help! 🌟"],
+    "what can you do": [
+        "I can answer questions, tell jokes, give you the time and date, and evaluate arithmetic expressions! 🤖",
+        "I can chat with you, tell you the time, and even solve math problems! 🧮",
+    ],
+    "main kya hon": ["Tum bhenchod ho 😂", "Tum madarchod ho 😂", "Tum bhen ka laude ho 😂", "Tum khassi ho 😂", "Tum gandu ho 😂", "Tum choti lulli wale ho 😂"],
+    "dekho rahul": ["Zyada backchodi karne ki hame adat nahi hn, ham ne bohat dekhen ha chut k chakkar me barbad hote hoye. 😤"],
+    "kya": ["Ye kya bak rahe ho madarchod? 😂"],
+    "pehle": ["Pehle laura mun me lo. 😂"],
+    "qasoor tera": ["Qasoor tera nahi, teri maa ghasti a. 😂"],
+    "tum dono": ["Tum dono ki maa ki choot. 😂"],
+    "default": ["Pehn nu lul je me weshi ho gaya na. 😂", "Teri bund wich kera keera jera chur mur chur mur krda. 😂"],
+};
+
+    const countryData = {
+        "afghanistan": {"capital": "Kabul", "currency": "AFN", "population": "38 million"},
+    "albania": {"capital": "Tirana", "currency": "ALL", "population": "2.8 million"},
+    "algeria": {"capital": "Algiers", "currency": "DZD", "population": "44 million"},
+    "andorra": {"capital": "Andorra la Vella", "currency": "EUR", "population": "77,000"},
+    "angola": {"capital": "Luanda", "currency": "AOA", "population": "33 million"},
+    "antigua and barbuda": {"capital": "Saint John's", "currency": "XCD", "population": "98,000"},
+    "argentina": {"capital": "Buenos Aires", "currency": "ARS", "population": "45 million"},
+    "armenia": {"capital": "Yerevan", "currency": "AMD", "population": "3 million"},
+    "australia": {"capital": "Canberra", "currency": "AUD", "population": "26 million"},
+    "austria": {"capital": "Vienna", "currency": "EUR", "population": "9 million"},
+    "azerbaijan": {"capital": "Baku", "currency": "AZN", "population": "10 million"},
+    "bahamas": {"capital": "Nassau", "currency": "BSD", "population": "393,000"},
+    "bahrain": {"capital": "Manama", "currency": "BHD", "population": "1.7 million"},
+    "bangladesh": {"capital": "Dhaka", "currency": "BDT", "population": "166 million"},
+    "barbados": {"capital": "Bridgetown", "currency": "BBD", "population": "287,000"},
+    "belarus": {"capital": "Minsk", "currency": "BYN", "population": "9.4 million"},
+    "belgium": {"capital": "Brussels", "currency": "EUR", "population": "11.5 million"},
+    "belize": {"capital": "Belmopan", "currency": "BZD", "population": "397,000"},
+    "benin": {"capital": "Porto-Novo", "currency": "XOF", "population": "12 million"},
+    "bhutan": {"capital": "Thimphu", "currency": "BTN", "population": "771,000"},
+    "bolivia": {"capital": "Sucre", "currency": "BOB", "population": "11.6 million"},
+    "bosnia and herzegovina": {"capital": "Sarajevo", "currency": "BAM", "population": "3.3 million"},
+    "botswana": {"capital": "Gaborone", "currency": "BWP", "population": "2.3 million"},
+    "brazil": {"capital": "Brasília", "currency": "BRL", "population": "213 million"},
+    "brunei": {"capital": "Bandar Seri Begawan", "currency": "BND", "population": "437,000"},
+    "bulgaria": {"capital": "Sofia", "currency": "BGN", "population": "6.9 million"},
+    "burkina faso": {"capital": "Ouagadougou", "currency": "XOF", "population": "21 million"},
+    "burundi": {"capital": "Gitega", "currency": "BIF", "population": "12 million"},
+    "cambodia": {"capital": "Phnom Penh", "currency": "KHR", "population": "16.7 million"},
+    "cameroon": {"capital": "Yaoundé", "currency": "XAF", "population": "27 million"},
+    "canada": {"capital": "Ottawa", "currency": "CAD", "population": "38 million"},
+    "cape verde": {"capital": "Praia", "currency": "CVE", "population": "556,000"},
+    "central african republic": {"capital": "Bangui", "currency": "XAF", "population": "4.8 million"},
+    "chad": {"capital": "N'Djamena", "currency": "XAF", "population": "16 million"},
+    "chile": {"capital": "Santiago", "currency": "CLP", "population": "19 million"},
+    "china": {"capital": "Beijing", "currency": "CNY", "population": "1.4 billion"},
+    "colombia": {"capital": "Bogotá", "currency": "COP", "population": "51 million"},
+    "comoros": {"capital": "Moroni", "currency": "KMF", "population": "870,000"},
+    "congo": {"capital": "Brazzaville", "currency": "XAF", "population": "5.5 million"},
+    "costa rica": {"capital": "San José", "currency": "CRC", "population": "5.1 million"},
+    "croatia": {"capital": "Zagreb", "currency": "HRK", "population": "4 million"},
+    "cuba": {"capital": "Havana", "currency": "CUP", "population": "11.3 million"},
+    "cyprus": {"capital": "Nicosia", "currency": "EUR", "population": "1.2 million"},
+    "czech republic": {"capital": "Prague", "currency": "CZK", "population": "10.7 million"},
+    "denmark": {"capital": "Copenhagen", "currency": "DKK", "population": "5.8 million"},
+    "djibouti": {"capital": "Djibouti", "currency": "DJF", "population": "1 million"},
+    "dominica": {"capital": "Roseau", "currency": "XCD", "population": "72,000"},
+    "dominican republic": {"capital": "Santo Domingo", "currency": "DOP", "population": "10.8 million"},
+    "east timor": {"capital": "Dili", "currency": "USD", "population": "1.3 million"},
+    "ecuador": {"capital": "Quito", "currency": "USD", "population": "17.6 million"},
+    "egypt": {"capital": "Cairo", "currency": "EGP", "population": "104 million"},
+    "el salvador": {"capital": "San Salvador", "currency": "USD", "population": "6.5 million"},
+    "equatorial guinea": {"capital": "Malabo", "currency": "XAF", "population": "1.4 million"},
+    "eritrea": {"capital": "Asmara", "currency": "ERN", "population": "3.5 million"},
+    "estonia": {"capital": "Tallinn", "currency": "EUR", "population": "1.3 million"},
+    "eswatini": {"capital": "Mbabane", "currency": "SZL", "population": "1.2 million"},
+    "ethiopia": {"capital": "Addis Ababa", "currency": "ETB", "population": "117 million"},
+    "fiji": {"capital": "Suva", "currency": "FJD", "population": "896,000"},
+    "finland": {"capital": "Helsinki", "currency": "EUR", "population": "5.5 million"},
+    "france": {"capital": "Paris", "currency": "EUR", "population": "65 million"},
+    "gabon": {"capital": "Libreville", "currency": "XAF", "population": "2.2 million"},
+    "gambia": {"capital": "Banjul", "currency": "GMD", "population": "2.4 million"},
+    "georgia": {"capital": "Tbilisi", "currency": "GEL", "population": "3.7 million"},
+    "germany": {"capital": "Berlin", "currency": "EUR", "population": "83 million"},
+    "ghana": {"capital": "Accra", "currency": "GHS", "population": "31 million"},
+    "greece": {"capital": "Athens", "currency": "EUR", "population": "10.7 million"},
+    "grenada": {"capital": "St. George's", "currency": "XCD", "population": "113,000"},
+    "guatemala": {"capital": "Guatemala City", "currency": "GTQ", "population": "17.9 million"},
+    "guinea": {"capital": "Conakry", "currency": "GNF", "population": "13 million"},
+    "guinea-bissau": {"capital": "Bissau", "currency": "XOF", "population": "2 million"},
+    "guyana": {"capital": "Georgetown", "currency": "GYD", "population": "787,000"},
+    "haiti": {"capital": "Port-au-Prince", "currency": "HTG", "population": "11.4 million"},
+    "honduras": {"capital": "Tegucigalpa", "currency": "HNL", "population": "9.9 million"},
+    "hungary": {"capital": "Budapest", "currency": "HUF", "population": "9.7 million"},
+    "iceland": {"capital": "Reykjavik", "currency": "ISK", "population": "366,000"},
+    "india": {"capital": "New Delhi", "currency": "INR", "population": "1.38 billion"},
+    "indonesia": {"capital": "Jakarta", "currency": "IDR", "population": "276 million"},
+    "iran": {"capital": "Tehran", "currency": "IRR", "population": "85 million"},
+    "iraq": {"capital": "Baghdad", "currency": "IQD", "population": "41 million"},
+    "ireland": {"capital": "Dublin", "currency": "EUR", "population": "5 million"},
+    "israel": {"capital": "Jerusalem", "currency": "ILS", "population": "9.3 million"},
+    "italy": {"capital": "Rome", "currency": "EUR", "population": "60 million"},
+    "jamaica": {"capital": "Kingston", "currency": "JMD", "population": "2.9 million"},
+    "japan": {"capital": "Tokyo", "currency": "JPY", "population": "126 million"},
+    "jordan": {"capital": "Amman", "currency": "JOD", "population": "10 million"},
+    "kazakhstan": {"capital": "Nur-Sultan", "currency": "KZT", "population": "19 million"},
+    "kenya": {"capital": "Nairobi", "currency": "KES", "population": "54 million"},
+    "kiribati": {"capital": "South Tarawa", "currency": "AUD", "population": "119,000"},
+    "korea, north": {"capital": "Pyongyang", "currency": "KPW", "population": "25 million"},
+    "korea, south": {"capital": "Seoul", "currency": "KRW", "population": "51 million"},
+    "kosovo": {"capital": "Pristina", "currency": "EUR", "population": "1.8 million"},
+    "kuwait": {"capital": "Kuwait City", "currency": "KWD", "population": "4.3 million"},
+    "kyrgyzstan": {"capital": "Bishkek", "currency": "KGS", "population": "6.5 million"},
+    "laos": {"capital": "Vientiane", "currency": "LAK", "population": "7.3 million"},
+    "latvia": {"capital": "Riga", "currency": "EUR", "population": "1.9 million"},
+    "lebanon": {"capital": "Beirut", "currency": "LBP", "population": "6.8 million"},
+    "lesotho": {"capital": "Maseru", "currency": "LSL", "population": "2.1 million"},
+    "liberia": {"capital": "Monrovia", "currency": "LRD", "population": "5 million"},
+    "libya": {"capital": "Tripoli", "currency": "LYD", "population": "6.9 million"},
+    "liechtenstein": {"capital": "Vaduz", "currency": "CHF", "population": "38,000"},
+    "lithuania": {"capital": "Vilnius", "currency": "EUR", "population": "2.7 million"},
+    "luxembourg": {"capital": "Luxembourg", "currency": "EUR", "population": "633,000"},
+    "madagascar": {"capital": "Antananarivo", "currency": "MGA", "population": "28 million"},
+    "malawi": {"capital": "Lilongwe", "currency": "MWK", "population": "19 million"},
+    "malaysia": {"capital": "Kuala Lumpur", "currency": "MYR", "population": "33 million"},
+    "maldives": {"capital": "Malé", "currency": "MVR", "population": "541,000"},
+    "mali": {"capital": "Bamako", "currency": "XOF", "population": "20 million"},
+    "malta": {"capital": "Valletta", "currency": "EUR", "population": "514,000"},
+    "marshall islands": {"capital": "Majuro", "currency": "USD", "population": "59,000"},
+    "mauritania": {"capital": "Nouakchott", "currency": "MRU", "population": "4.6 million"},
+    "mauritius": {"capital": "Port Louis", "currency": "MUR", "population": "1.3 million"},
+    "mexico": {"capital": "Mexico City", "currency": "MXN", "population": "126 million"},
+    "micronesia": {"capital": "Palikir", "currency": "USD", "population": "115,000"},
+    "moldova": {"capital": "Chisinau", "currency": "MDL", "population": "4 million"},
+    "monaco": {"capital": "Monaco", "currency": "EUR", "population": "39,000"},
+    "mongolia": {"capital": "Ulaanbaatar", "currency": "MNT", "population": "3.3 million"},
+    "montenegro": {"capital": "Podgorica", "currency": "EUR", "population": "628,000"},
+    "morocco": {"capital": "Rabat", "currency": "MAD", "population": "37 million"},
+    "mozambique": {"capital": "Maputo", "currency": "MZN", "population": "32 million"},
+    "myanmar": {"capital": "Naypyidaw", "currency": "MMK", "population": "54 million"},
+    "namibia": {"capital": "Windhoek", "currency": "NAD", "population": "2.5 million"},
+    "nauru": {"capital": "Yaren", "currency": "AUD", "population": "10,800"},
+    "nepal": {"capital": "Kathmandu", "currency": "NPR", "population": "29 million"},
+    "netherlands": {"capital": "Amsterdam", "currency": "EUR", "population": "17 million"},
+    "new zealand": {"capital": "Wellington", "currency": "NZD", "population": "5 million"},
+    "nicaragua": {"capital": "Managua", "currency": "NIO", "population": "6.6 million"},
+    "niger": {"capital": "Niamey", "currency": "XOF", "population": "24 million"},
+    "nigeria": {"capital": "Abuja", "currency": "NGN", "population": "211 million"},
+    "north macedonia": {"capital": "Skopje", "currency": "MKD", "population": "2.1 million"},
+    "norway": {"capital": "Oslo", "currency": "NOK", "population": "5.4 million"},
+    "oman": {"capital": "Muscat", "currency": "OMR", "population": "5.1 million"},
+    "pakistan": {"capital": "Islamabad", "currency": "PKR", "population": "225 million"},
+    "palau": {"capital": "Ngerulmud", "currency": "USD", "population": "18,000"},
+    "panama": {"capital": "Panama City", "currency": "PAB", "population": "4.3 million"},
+    "papua new guinea": {"capital": "Port Moresby", "currency": "PGK", "population": "9 million"},
+    "paraguay": {"capital": "Asunción", "currency": "PYG", "population": "7.1 million"},
+    "peru": {"capital": "Lima", "currency": "PEN", "population": "33 million"},
+    "philippines": {"capital": "Manila", "currency": "PHP", "population": "111 million"},
+    "poland": {"capital": "Warsaw", "currency": "PLN", "population": "38 million"},
+    "portugal": {"capital": "Lisbon", "currency": "EUR", "population": "10 million"},
+    "qatar": {"capital": "Doha", "currency": "QAR", "population": "2.8 million"},
+    "romania": {"capital": "Bucharest", "currency": "RON", "population": "19 million"},
+    "russia": {"capital": "Moscow", "currency": "RUB", "population": "146 million"},
+    "rwanda": {"capital": "Kigali", "currency": "RWF", "population": "13 million"},
+    "saint kitts and nevis": {"capital": "Basseterre", "currency": "XCD", "population": "53,000"},
+    "saint lucia": {"capital": "Castries", "currency": "XCD", "population": "184,000"},
+    "saint vincent and the grenadines": {"capital": "Kingstown", "currency": "XCD", "population": "111,000"},
+    "samoa": {"capital": "Apia", "currency": "WST", "population": "198,000"},
+    "san marino": {"capital": "San Marino", "currency": "EUR", "population": "34,000"},
+    "sao tome and principe": {"capital": "São Tomé", "currency": "STN", "population": "219,000"},
+    "saudi arabia": {"capital": "Riyadh", "currency": "SAR", "population": "35 million"},
+    "senegal": {"capital": "Dakar", "currency": "XOF", "population": "17 million"},
+    "serbia": {"capital": "Belgrade", "currency": "RSD", "population": "6.9 million"},
+    "seychelles": {"capital": "Victoria", "currency": "SCR", "population": "98,000"},
+    "sierra leone": {"capital": "Freetown", "currency": "SLL", "population": "8 million"},
+    "singapore": {"capital": "Singapore", "currency": "SGD", "population": "5.7 million"},
+    "slovakia": {"capital": "Bratislava", "currency": "EUR", "population": "5.5 million"},
+    "slovenia": {"capital": "Ljubljana", "currency": "EUR", "population": "2.1 million"},
+    "solomon islands": {"capital": "Honiara", "currency": "SBD", "population": "687,000"},
+    "somalia": {"capital": "Mogadishu", "currency": "SOS", "population": "16 million"},
+    "south africa": {"capital": "Pretoria", "currency": "ZAR", "population": "60 million"},
+    "south sudan": {"capital": "Juba", "currency": "SSP", "population": "11 million"},
+    "spain": {"capital": "Madrid", "currency": "EUR", "population": "47 million"},
+    "sri lanka": {"capital": "Sri Jayawardenepura Kotte", "currency": "LKR", "population": "22 million"},
+    "sudan": {"capital": "Khartoum", "currency": "SDG", "population": "45 million"},
+    "suriname": {"capital": "Paramaribo", "currency": "SRD", "population": "591,000"},
+    "sweden": {"capital": "Stockholm", "currency": "SEK", "population": "10 million"},
+    "switzerland": {"capital": "Bern", "currency": "CHF", "population": "8.7 million"},
+    "syria": {"capital": "Damascus", "currency": "SYP", "population": "18 million"},
+    "taiwan": {"capital": "Taipei", "currency": "TWD", "population": "23.6 million"},
+    "tajikistan": {"capital": "Dushanbe", "currency": "TJS", "population": "9.5 million"},
+    "tanzania": {"capital": "Dodoma", "currency": "TZS", "population": "61 million"},
+    "thailand": {"capital": "Bangkok", "currency": "THB", "population": "70 million"},
+    "togo": {"capital": "Lomé", "currency": "XOF", "population": "8.3 million"},
+    "tonga": {"capital": "Nukuʻalofa", "currency": "TOP", "population": "106,000"},
+    "trinidad and tobago": {"capital": "Port of Spain", "currency": "TTD", "population": "1.4 million"},
+    "tunisia": {"capital": "Tunis", "currency": "TND", "population": "12 million"},
+    "turkey": {"capital": "Ankara", "currency": "TRY", "population": "85 million"},
+    "turkmenistan": {"capital": "Ashgabat", "currency": "TMT", "population": "6 million"},
+    "tuvalu": {"capital": "Funafuti", "currency": "AUD", "population": "11,000"},
+    "uganda": {"capital": "Kampala", "currency": "UGX", "population": "47 million"},
+    "ukraine": {"capital": "Kyiv", "currency": "UAH", "population": "41 million"},
+    "united arab emirates": {"capital": "Abu Dhabi", "currency": "AED", "population": "10 million"},
+    "united kingdom": {"capital": "London", "currency": "GBP", "population": "67 million"},
+    "united states": {"capital": "Washington, D.C.", "currency": "USD", "population": "331 million"},
+    "uruguay": {"capital": "Montevideo", "currency": "UYU", "population": "3.5 million"},
+    "uzbekistan": {"capital": "Tashkent", "currency": "UZS", "population": "34 million"},
+    "vanuatu": {"capital": "Port Vila", "currency": "VUV", "population": "307,000"},
+    "vatican city": {"capital": "Vatican City", "currency": "EUR", "population": "800"},
+    "venezuela": {"capital": "Caracas", "currency": "VES", "population": "28 million"},
+    "vietnam": {"capital": "Hanoi", "currency": "VND", "population": "98 million"},
+    "yemen": {"capital": "Sana'a", "currency": "YER", "population": "30 million"},
+    "zambia": {"capital": "Lusaka", "currency": "ZMW", "population": "18 million"},
+    "zimbabwe": {"capital": "Harare", "currency": "ZWL", "population": "15 million"}
+    };
+
+ 
+    const numberWords = {
+      "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4",
+      "five": "5", "six": "6", "seven": "7", "eight": "8", "nine": "9",
+      "ten": "10", "eleven": "11", "twelve": "12", "thirteen": "13", "fourteen": "14",
+      "fifteen": "15", "sixteen": "16", "seventeen": "17", "eighteen": "18", "nineteen": "19",
+      "twenty": "20", "thirty": "30", "forty": "40", "fifty": "50",
+      "sixty": "60", "seventy": "70", "eighty": "80", "ninety": "90",
+      "hundred": "100", "thousand": "1000", "million": "1000000", "billion": "1000000000",
+      "plus": "+", "add": "+", "added to": "+", "sum of": "+", "multiply": "*",
+      "minus": "-", "subtract": "-", "subtracted from": "-", "difference": "-",
+      "times": "*", "multiplied by": "*", "product of": "*", "divide": "/",
+      "divided by": "/", "over": "/", "ratio of": "/", "quotient of": "/",
+      "power": "**", "raised to the power of": "**", "to the power of": "**",
+      "modulus": "%", "mod": "%", "%": "%",
+      "square": "**2", "cubed": "**3",
+    };
+
+
+    function wordsToNumbers(text) {
+      for (const [word, number] of Object.entries(numberWords)) {
+        const regex = new RegExp(`\\b${word}\\b`, "gi");
+        text = text.replace(regex, number);
+      }
+      return text;
+    }
+
+
+    function evaluateExpression(expression) {
+      try {
+        expression = wordsToNumbers(expression);
+        if (/^[\d+\-*/().\s%]+$/.test(expression)) {
+          const result = eval(expression);
+          return `The result is: ${result} 🧮`;
+        } else {
+          return "Sorry, I can only evaluate arithmetic expressions. 🤔";
+        }
+      } catch (e) {
+        return "Sorry, I couldn't evaluate that expression. 😅";
+      }
+    }
+
+
+    function getCountryInfo(country) {
+      const info = countryData[country.toLowerCase()];
+      if (info) {
+        return `Here's some info about ${country}:\nCapital: ${info.capital}\nCurrency: ${info.currency}\nPopulation: ${info.population} 🌍`;
+      } else {
+        return `I don't have information about ${country}. 🤔`;
+      }
+    }
+
+
+    async function convertCurrency(amount, fromCurrency, toCurrency) {
+      try {
+        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
+        const data = await response.json();
+        if (data.rates[toCurrency]) {
+          const convertedAmount = (amount * data.rates[toCurrency]).toFixed(2);
+          return `${amount} ${fromCurrency} is equal to ${convertedAmount} ${toCurrency}. 💰`;
+        } else {
+          return "Invalid currency code. 🤔";
+        }
+      } catch (e) {
+        return "Currency conversion failed. Please try again later. 😅";
+      }
+    }
+
+ 
+    async function getResponse(userInput) {
+      userInput = userInput.toLowerCase().trim();
+
+      
+      if (userInput.includes("convert") && userInput.includes("to")) {
+        const parts = userInput.split(" ");
+        const amount = parseFloat(parts[1]);
+        const fromCurrency = parts[2].toUpperCase();
+        const toCurrency = parts[4].toUpperCase();
+        if (!isNaN(amount)) {
+          return await convertCurrency(amount, fromCurrency, toCurrency);
+        } else {
+          return "Invalid currency conversion request. Try: 'Convert 10 USD to PKR'. 🤔";
+        }
+      }
+
+  
+      if (/plus|minus|times|multiplied by|divided by|over|\d+/.test(userInput)) {
+        return evaluateExpression(userInput);
+      }
+
+
+      for (const country of Object.keys(countryData)) {
+        if (userInput.includes(country)) {
+          return getCountryInfo(country);
+        }
+      }
+
+     
+      for (const key of Object.keys(responses)) {
+        if (userInput.includes(key)) {
+          return responses[key][Math.floor(Math.random() * responses[key].length)];
+        }
+      }
+
+
+      return responses["default"][0];
+    }
+
+
+    async function sendMessage() {
+      const userInput = document.getElementById("user-input").value;
+      if (userInput.trim() === "") return;
+
+
+      const chatArea = document.getElementById("chat-area");
+      const userMessage = document.createElement("div");
+      userMessage.className = "user";
+      userMessage.textContent = `You: ${userInput}`;
+      chatArea.appendChild(userMessage);
+
+      const botResponse = await getResponse(userInput);
+      const botMessage = document.createElement("div");
+      botMessage.className = "bot";
+      botMessage.textContent = `ChatBot: ${botResponse}`;
+      chatArea.appendChild(botMessage);
+
+      document.getElementById("user-input").value = "";
+
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+
+    function handleKeyPress(event) {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    }
+  </script>
+</body>
+</html>
